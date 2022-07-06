@@ -1,9 +1,0 @@
-﻿  YYC_ripper.cpp
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(4,31): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(4,31): warning C4309: 'initializing': truncation of constant value
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,53): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,53): warning C4309: 'initializing': truncation of constant value
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,71): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,71): warning C4309: 'initializing': truncation of constant value
-E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(242,23): warning C4018: '<': signed/unsigned mismatch
-  YYC_ripper.vcxproj -> E:\VisualStudio\projects\YYC_ripper\YYC_ripper\Debug\YYC_ripper.exe
