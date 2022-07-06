@@ -20,6 +20,31 @@ std::string getCurrentDir() // Returns EXE directory
     return std::string(s);
 }
 
+std::vector<unsigned char> read_bin(std::string filename)
+{
+    std::ifstream file(filename, std::ios::binary);
+    file.unsetf(std::ios::skipws);
+    std::streampos file_size;
+    file.seekg(0, std::ios::end);
+    file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::vector<unsigned char> vec;
+    vec.reserve(file_size);
+    vec.insert(vec.begin(), std::istream_iterator<unsigned char>(file), std::istream_iterator<unsigned char>());
+    return vec;
+}
+
+std::string vectostr(std::vector<unsigned char> vec)
+{
+    std::string buf;
+    for (int i = 0; i < vec.size(); i++)
+    {
+        buf += vec.at(i);
+    }
+    return buf;
+}
+
 int main()
 {
     using namespace std;
@@ -28,30 +53,16 @@ int main()
     string path = getCurrentDir() + "\\data.win";
     cout << path << endl;
 
-    std::ifstream input(path, std::ios::binary | std::ios::ate);
-    std::streamsize size = input.tellg();
-    input.seekg(0, std::ios::beg);
-    std::vector<char> bytes(size);
+    std::vector <unsigned char> bytes = read_bin(path);
 
-    if (input.read(bytes.data(), size))
-    {
-        /* worked! */
-    }
-
-    /*std::vector<char> bytes(
-        (std::istreambuf_iterator<char>(input)),
-        (std::istreambuf_iterator<char>()));*/
-
-    input.close();
-
-    std::vector<char> slice;
+    std::vector<unsigned char> slice;
 
     // outbuf
-    std::vector<char>* printvec = new std::vector<char>();
+    std::vector<unsigned char>* printvec = new std::vector<unsigned char>();
     
 
-    std::array<char, 8> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
-    std::array<char, 8> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
+    std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+    std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
 
     int beginsq = 0;
     int endsq = 0;
@@ -73,19 +84,27 @@ int main()
 
         if (!found) // looking for begin section
         {
-            auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
+            /**auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
             if (it != slice.end()) // found
             {             
                 found = true;
                 beginsq = i;
                 cout << "SuS";
+            }*/
+
+            if (vectostr(slice) == vectostr(beginSq))
+            {
+                found = true;
+                beginsq = i;
+                cout << "begin";
             }
         }
 
         if (found) // looking for end
         {
-            auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
-            if (it != slice.end()) // found end
+            //auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
+            //if (it != slice.end()) // found end
+            if(vectostr(slice) == vectostr(endSq))
             {
                 found = false;
                 cout << "End\n";
@@ -97,7 +116,8 @@ int main()
                 }
                 imgcnt++;
                 // save to file (printarr)
-                ofstream wf(getCurrentDir() + "\\img"+ std::to_string(imgcnt)+".png", ios::out);
+                ofstream wf(getCurrentDir() + "\\img"+ std::to_string(imgcnt)+".png", ios::out, ios::binary );
+                wf.unsetf(ios::skipws);
 
                 for (int xx = 0; xx < printvec->size(); xx++)
                 {
