@@ -1,12 +1,15 @@
 ﻿  YYC_ripper.cpp
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(4,31): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(4,31): warning C4309: 'initializing': truncation of constant value
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(6,53): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(6,53): warning C4309: 'initializing': truncation of constant value
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(6,71): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\yyg.h(6,71): warning C4309: 'initializing': truncation of constant value
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\YYC_ripper.cpp(33,17): warning C4244: 'argument': conversion from 'std::streamoff' to 'const unsigned int', possible loss of data
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\YYC_ripper.cpp(41,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\YYC_ripper.cpp(75,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\YYC_ripper.cpp(122,37): warning C4018: '<': signed/unsigned mismatch
-  YYC_ripper.vcxproj -> C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\Debug\YYC_ripper.exe
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(4,31): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(4,31): warning C4309: 'initializing': truncation of constant value
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,53): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,53): warning C4309: 'initializing': truncation of constant value
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,71): warning C4838: conversion from 'int' to 'char' requires a narrowing conversion
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\yyg.h(6,71): warning C4309: 'initializing': truncation of constant value
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(13,1): warning C4005: '_CRT_SECURE_NO_WARNINGS': macro redefinition
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp : message : see previous definition of '_CRT_SECURE_NO_WARNINGS'
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(37,17): warning C4244: 'argument': conversion from 'std::streamoff' to 'const unsigned int', possible loss of data
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(45,23): warning C4018: '<': signed/unsigned mismatch
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(57,25): warning C4018: '<': signed/unsigned mismatch
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(98,23): warning C4018: '<': signed/unsigned mismatch
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\YYC_ripper.cpp(145,37): warning C4018: '<': signed/unsigned mismatch
+  YYC_ripper.vcxproj -> E:\VisualStudio\projects\YYC_ripper\YYC_ripper\Debug\YYC_ripper.exe

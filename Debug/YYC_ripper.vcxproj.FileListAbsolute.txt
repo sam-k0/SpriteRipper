@@ -1,1 +1,2 @@
 C:\Users\Robert\Documents\01_STUDIUM\YYC_ripper\Debug\YYC_ripper.exe
+E:\VisualStudio\projects\YYC_ripper\YYC_ripper\Debug\YYC_ripper.exe

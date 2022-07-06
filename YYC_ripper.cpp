@@ -8,7 +8,11 @@
 #include <algorithm>
 #include <array>
 #include <string>
+#include <stdio.h>
 
+#define _CRT_SECURE_NO_WARNINGS
+
+using namespace std;
 std::string getCurrentDir() // Returns EXE directory
 {
     char cCurrentPath[FILENAME_MAX]; // get working directory into buffer
@@ -45,15 +49,34 @@ std::string vectostr(std::vector<unsigned char> vec)
     return buf;
 }
 
-int main()
+void writeFile(vector<unsigned char> *printvec)
 {
-    using namespace std;
+    ofstream wf(getCurrentDir() + "\\img" + std::to_string(99) + ".win", ios::out, ios::binary);
+    //wf.unsetf(ios::skipws);
+
+    for (int xx = 0; xx < printvec->size(); xx++)
+    {
+        wf << printvec->at(xx);
+
+        //cout << printvec->at(xx);
+    }
+
+    wf.close();
+}
+
+int cppmain()
+{
+   
     cout << "Hello World!\n";
 
     string path = getCurrentDir() + "\\data.win";
     cout << path << endl;
 
     std::vector <unsigned char> bytes = read_bin(path);
+
+    writeFile(&bytes);
+
+    return -88;
 
     std::vector<unsigned char> slice;
 
@@ -135,4 +158,52 @@ int main()
     }
 
   
+}
+
+int main()
+{
+    FILE* fileptr;
+    unsigned char* buffer;
+    long filelen;
+
+    string path = getCurrentDir() + "\\origtest.png";
+
+    fileptr = fopen(path.c_str(), "rb");
+    fseek(fileptr, 0, SEEK_END);
+    filelen = ftell(fileptr);
+    rewind(fileptr);
+
+    buffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+    fread(buffer, sizeof(unsigned char), filelen, fileptr); // Read in the entire file
+    fclose(fileptr); // Close the file
+    
+    // translate this to vector
+    std::vector<unsigned char>* fvec = new std::vector<unsigned char>();
+
+    for (int i = 0; i < filelen; i++)
+    {
+        unsigned char tc = buffer[i];
+        fvec->push_back(tc);
+    }
+
+    cout << fvec->size();
+
+
+
+    // vec to array
+    unsigned char* pbuffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+    for (int i = 0; i < filelen; i++) // change to vecsize
+    {
+        pbuffer[i] = fvec->at(i);
+    }
+
+    fileptr = fopen("mogus.png", "wb");
+    fwrite(pbuffer, sizeof(unsigned char), filelen, fileptr);
+    fclose(fileptr); // Close the file
+
+    /**fileptr = fopen("mogus.png", "wb");
+    fwrite(buffer, sizeof(unsigned char), filelen, fileptr);
+    fclose(fileptr); // Close the file*/
+
+    return 0;
 }
