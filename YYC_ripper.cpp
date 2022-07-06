@@ -10,7 +10,6 @@
 #include <string>
 #include <stdio.h>
 
-#define _CRT_SECURE_NO_WARNINGS
 
 using namespace std;
 std::string getCurrentDir() // Returns EXE directory
@@ -23,7 +22,7 @@ std::string getCurrentDir() // Returns EXE directory
     char* s = cCurrentPath; // save path from buffer into currentpath chararr
     return std::string(s);
 }
-
+#ifdef cpp
 std::vector<unsigned char> read_bin(std::string filename)
 {
     std::ifstream file(filename, std::ios::binary);
@@ -107,27 +106,21 @@ int cppmain()
 
         if (!found) // looking for begin section
         {
-            /**auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
+            auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
             if (it != slice.end()) // found
             {             
                 found = true;
                 beginsq = i;
                 cout << "SuS";
-            }*/
-
-            if (vectostr(slice) == vectostr(beginSq))
-            {
-                found = true;
-                beginsq = i;
-                cout << "begin";
             }
+
+           
         }
 
         if (found) // looking for end
         {
-            //auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
-            //if (it != slice.end()) // found end
-            if(vectostr(slice) == vectostr(endSq))
+            auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
+            if (it != slice.end()) // found end            
             {
                 found = false;
                 cout << "End\n";
@@ -159,24 +152,19 @@ int cppmain()
 
   
 }
-
-int main()
+#endif // cpp
+unsigned char* convertToUCArray(vector<unsigned char>* fvec, long filelen)
 {
-    FILE* fileptr;
-    unsigned char* buffer;
-    long filelen;
+    unsigned char* pbuffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+    for (int i = 0; i < filelen; i++) // change to vecsize
+    {
+        pbuffer[i] = fvec->at(i);
+    }
+    return pbuffer;
+}
 
-    string path = getCurrentDir() + "\\origtest.png";
-
-    fileptr = fopen(path.c_str(), "rb");
-    fseek(fileptr, 0, SEEK_END);
-    filelen = ftell(fileptr);
-    rewind(fileptr);
-
-    buffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
-    fread(buffer, sizeof(unsigned char), filelen, fileptr); // Read in the entire file
-    fclose(fileptr); // Close the file
-    
+vector<unsigned char>* convertUCArrayToVec(long filelen, unsigned char* buffer)
+{
     // translate this to vector
     std::vector<unsigned char>* fvec = new std::vector<unsigned char>();
 
@@ -185,25 +173,130 @@ int main()
         unsigned char tc = buffer[i];
         fvec->push_back(tc);
     }
+    return fvec;
+}
 
-    cout << fvec->size();
-
-
-
-    // vec to array
-    unsigned char* pbuffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
-    for (int i = 0; i < filelen; i++) // change to vecsize
+void exitOnFileError()
+{
+    if (errno != 0)
     {
-        pbuffer[i] = fvec->at(i);
+        cout << "Could not find file!" << endl;
+        exit(-99);
+    }
+}
+
+int main()
+{
+    errno = 0;
+    FILE* fileptr;
+    unsigned char* buffer;
+    long filelen;
+
+    // The sections to test against
+    std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+    std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
+
+    // User input filename
+    string targetfname = "";
+    cout << "Please input the name of the file to extract from: (Example: data.win)" << endl;
+    cin >> targetfname;
+
+    // default name
+    if (targetfname == " ")
+    {
+        targetfname = "data.win";
     }
 
-    fileptr = fopen("mogus.png", "wb");
-    fwrite(pbuffer, sizeof(unsigned char), filelen, fileptr);
+    string path = getCurrentDir() + "\\" + targetfname;
+
+
+    cout << "-----" << endl;
+    // Reading file
+    fileptr = fopen(path.c_str(), "rb");
+
+    exitOnFileError();
+
+    fseek(fileptr, 0, SEEK_END);
+    filelen = ftell(fileptr);
+    rewind(fileptr);
+    
+    cout <<"File is " << filelen << " bytes in size."<< endl;
+    // Read file to buffer
+    buffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+    fread(buffer, sizeof(unsigned char), filelen, fileptr); // Read in the entire file
     fclose(fileptr); // Close the file
+    
+    // translate this to vector
+    std::vector<unsigned char>* fvec = convertUCArrayToVec(filelen, buffer);
+    
+    cout << "Copied "<<fvec->size()<<" bytes to process."<<endl;
+    cout << "-----" << endl;
+    // Process the read data for sections
+    int beginsq = 0;
+    int endsq = 0;
+    bool found = false;
+    int imgcnt = 0;
 
-    /**fileptr = fopen("mogus.png", "wb");
-    fwrite(buffer, sizeof(unsigned char), filelen, fileptr);
-    fclose(fileptr); // Close the file*/
+    vector<unsigned char> slice;
 
+    for (int i = 0; i < fvec->size() - 8; i += 1)
+    {
+        slice.clear();
+
+        for (int ii = 0; ii < 8; ii++)
+        {
+            slice.push_back(fvec->at(i + ii)); // copy to slice
+        }
+
+        if (!found) // looking for begin section
+        {
+            auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
+            if (it != slice.end()) // found
+            {
+                found = true;
+                beginsq = i;
+                cout << "->Begin PNG sequence at byte "<< beginsq << endl;
+            }
+        }
+
+        if (found) // looking for end
+        {        
+            auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
+            if (it != slice.end()) // found end            
+            {
+                found = false;                
+                endsq = i + 8;
+                cout << "->End PNG sequence at byte " <<endsq<< endl;
+                cout << "-----" << endl;
+
+                // get printvec
+                vector<unsigned char> printvec; // The vector to add the stuff to
+                unsigned char* printbuf;        // The buffer to be printed then
+                printbuf=(unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+
+                for (int yy = beginsq; yy < endsq; yy++) // adding to the vector somehow worked easier than adding to the buffer
+                {
+                    printvec.push_back(fvec->at(yy));
+                }
+
+                // Converting the vec back to array lols
+                                                               
+                printbuf = convertToUCArray(&printvec, printvec.size());
+                // save to file (printarr)
+
+                imgcnt++; // The counter of how many images have been already saved
+                string savefilename = "assetrip" + std::to_string(imgcnt) + ".png";
+                // Printing file..
+                fileptr = fopen(savefilename.c_str(), "wb");
+                fwrite(printbuf, sizeof(unsigned char), (endsq - beginsq), fileptr);
+                fclose(fileptr); // Close the file
+                free(printbuf);
+            }
+        }
+    }
+
+    // Clean up
+    delete fvec;
+    cout << "Done! Extracted "<< imgcnt <<" assets" << endl;
     return 0;
 }
