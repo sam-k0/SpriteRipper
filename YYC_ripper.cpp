@@ -9,6 +9,7 @@
 #include <array>
 #include <string>
 #include <stdio.h>
+#include <conio.h>
 
 
 using namespace std;
@@ -55,8 +56,9 @@ void exitOnFileError()
     }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    
     errno = 0;
     FILE* fileptr;
     unsigned char* buffer;
@@ -66,18 +68,29 @@ int main()
     std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
     std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
 
-    // User input filename
-    string targetfname = "";
-    cout << "Please input the name of the file to extract from: (Example: data.win)" << endl;
-    cin >> targetfname;
-
-    // default name
-    if (targetfname == " ")
+    string path;
+    if (argc == 2)
     {
-        targetfname = "data.win";
+        cout << "Opened by drag-and-drop!" << endl;
+        cout << argv[1] << endl;
+        path = string(argv[1]);
     }
+    else
+    { 
+        // User input filename
+        string targetfname = "";
+        cout << "Please input the name of the file to extract from in the current directory: (Example: data.win)" << endl;
+        cin >> targetfname;
 
-    string path = getCurrentDir() + "\\" + targetfname;
+        // default name
+        if (targetfname == " ")
+        {
+            targetfname = "data.win";
+        }
+
+        path = getCurrentDir() + "\\" + targetfname;
+    }
+    
 
 
     cout << "-----" << endl;
@@ -168,5 +181,8 @@ int main()
     // Clean up
     delete fvec;
     cout << "Done! Extracted "<< imgcnt <<" assets" << endl;
+    cout << "Press any key to close." << endl;
+    while (!_kbhit());
+
     return 0;
 }
