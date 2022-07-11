@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 
     cout << "-----" << endl;
     // Reading file
-    fileptr = fopen(path.c_str(), "rb");
+    fopen_s(&fileptr,path.c_str(), "rb");
 
     exitOnFileError();
 
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
                 imgcnt++; // The counter of how many images have been already saved
                 string savefilename = "assetrip" + std::to_string(imgcnt) + ".png";
                 // Printing file..
-                fileptr = fopen(savefilename.c_str(), "wb");
+                fopen_s(&fileptr,savefilename.c_str(), "wb");
                 fwrite(printbuf, sizeof(unsigned char), (endsq - beginsq), fileptr);
                 fclose(fileptr); // Close the file
                 free(printbuf);
