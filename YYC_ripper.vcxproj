@@ -24,6 +24,7 @@
     <ProjectGuid>{ffc78c75-4804-4392-be7e-bd497d409b16}</ProjectGuid>
     <RootNamespace>YYCripper</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>YYC_AssetPatcher</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

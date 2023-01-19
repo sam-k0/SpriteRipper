@@ -13,6 +13,12 @@
 
 
 using namespace std;
+
+// The sections to test against
+std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
+
+
 std::string getCurrentDir() // Returns EXE directory
 {
     char cCurrentPath[FILENAME_MAX]; // get working directory into buffer
@@ -56,17 +62,50 @@ void exitOnFileError()
     }
 }
 
+//Reads the entire game binary file into a byte vector
+vector<unsigned char>* gameBinaryToBytevec(std::string path, long* filelen, FILE* fileptr)
+{
+    // Local scope variable defs
+    //FILE* fileptr;
+    //long filelen = 0;
+    unsigned char* buffer;
+    // Passed-out variable defs
+    std::vector<unsigned char>* fvec;
+
+    // Reading file
+    fopen_s(&fileptr, path.c_str(), "rb");
+
+    exitOnFileError();
+
+    fseek(fileptr, 0, SEEK_END);
+    *filelen = ftell(fileptr);
+    rewind(fileptr);
+
+    // Read file to buffer
+    buffer = (unsigned char*)malloc(*filelen * sizeof(unsigned char)); // Enough memory for the file
+    fread(buffer, sizeof(unsigned char), *filelen, fileptr); // Read in the entire file
+    fclose(fileptr); // Close the file
+
+    // translate this to vector
+    fvec = convertUCArrayToVec(*filelen, buffer);
+
+    // Free the buffer??
+    // will it break the copied values?
+    free(buffer);
+
+    return fvec;
+}
+
+
+
 int main(int argc, char* argv[])
 {
     
     errno = 0;
-    FILE* fileptr;
+    FILE* fileptr = NULL;
     unsigned char* buffer;
     long filelen;
 
-    // The sections to test against
-    std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
-    std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
 
     string path;
     if (argc == 2)
@@ -91,26 +130,8 @@ int main(int argc, char* argv[])
         path = getCurrentDir() + "\\" + targetfname;
     }
     
-
-
-    cout << "-----" << endl;
-    // Reading file
-    fopen_s(&fileptr,path.c_str(), "rb");
-
-    exitOnFileError();
-
-    fseek(fileptr, 0, SEEK_END);
-    filelen = ftell(fileptr);
-    rewind(fileptr);
-    
-    cout <<"File is " << filelen << " bytes in size."<< endl;
-    // Read file to buffer
-    buffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
-    fread(buffer, sizeof(unsigned char), filelen, fileptr); // Read in the entire file
-    fclose(fileptr); // Close the file
-    
-    // translate this to vector
-    std::vector<unsigned char>* fvec = convertUCArrayToVec(filelen, buffer);
+    // Read the entire game file into a vector
+    std::vector<unsigned char>* fvec = gameBinaryToBytevec(path.c_str(), &filelen, fileptr);
     
     cout << "Copied "<<fvec->size()<<" bytes to process."<<endl;
     cout << "-----" << endl;
