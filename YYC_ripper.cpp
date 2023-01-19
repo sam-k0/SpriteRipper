@@ -57,7 +57,7 @@ void exitOnFileError()
 {
     if (errno != 0)
     {
-        cout << "Could not find file!" << endl;
+        std::cout << "Could not find file!" << endl;
         exit(-99);
     }
 }
@@ -96,18 +96,177 @@ vector<unsigned char>* gameBinaryToBytevec(std::string path, long* filelen, FILE
     return fvec;
 }
 
+// Used to read a PNG file to byte vector
+vector<unsigned char>* spriteSheetToBytevec(std::string path)
+{
+    // Local scope variable defs
+    FILE* fileptr;
+    long filelen = 0;
+    unsigned char* buffer;
+    // Passed-out variable defs
+    std::vector<unsigned char>* fvec;
 
+    // Reading file
+    fopen_s(&fileptr, path.c_str(), "rb");
+
+    exitOnFileError();
+
+    fseek(fileptr, 0, SEEK_END);
+    filelen = ftell(fileptr);
+    rewind(fileptr);
+
+    // Read file to buffer
+    buffer = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+    fread(buffer, sizeof(unsigned char), filelen, fileptr); // Read in the entire file
+    fclose(fileptr); // Close the file
+
+    // translate this to vector
+    fvec = convertUCArrayToVec(filelen, buffer);
+
+    // Free the buffer??
+    // will it break the copied values? Doesnt seem like it
+    free(buffer);
+
+    return fvec;
+}
+
+// Returns as integer: start of the first PNG sequence in the vector
+long findPNGstart(vector<unsigned char>* vect)
+{
+    long pngstart = -1;
+    vector<unsigned char> slice;
+    bool found = false;
+
+    for (int i = 0; i < vect->size() - 8; i += 1)
+    {
+        slice.clear();
+
+        for (int ii = 0; ii < 8; ii++)
+        {
+            slice.push_back(vect->at(i + ii)); // copy to slice
+        }
+
+        if (!found) // looking for begin section
+        {
+            auto it = std::search(slice.begin(), slice.end(), beginSq.begin(), beginSq.end()); // search for seq
+            if (it != slice.end()) // found
+            {
+                found = true;
+                pngstart = i;                
+            }
+        }
+    }
+
+    return pngstart;
+}
+
+long findPNGend(vector<unsigned char>* vect) 
+{
+    long pngend = -1;
+    vector<unsigned char> slice;
+    bool found = false;
+
+    for (int i = 0; i < vect->size() - 7; i += 1)
+    {
+        slice.clear();
+
+        for (int ii = 0; ii < 8; ii++)
+        {
+            slice.push_back(vect->at(i + ii)); // copy to slice
+        }
+
+        if (!found) // looking for begin section
+        {
+            auto it = std::search(slice.begin(), slice.end(), endSq.begin(), endSq.end()); // search for seq
+            if (it != slice.end()) // found
+            {
+                found = true;
+                pngend = i + 8;
+            }
+        }
+    }
+
+    return pngend;
+}
+
+void writePatchedBinary(vector<unsigned char>* vect)
+{
+    unsigned char* printbuf;        // The buffer to be printed then
+    long filelen = vect->size();
+    FILE* fptr = NULL;
+
+    printbuf = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
+
+    // Converting the vec back to array lols
+
+    printbuf = convertToUCArray(vect, vect->size());
+    // save to file (printarr)
+
+    string savefilename = "patch.win";
+    // Printing file..
+    fopen_s(&fptr, savefilename.c_str(), "wb");
+    fwrite(printbuf, sizeof(unsigned char), filelen, fptr);
+    fclose(fptr); // Close the file
+    free(printbuf);
+}
+
+// This will return the gamebin vec with the spritesheet vec injected at the png section
+void injectSpritesheet(std::vector<unsigned char>* gameBinaryByteVec, std::vector<unsigned char>* spriteSheetByteVec)
+{
+    // TODO: Start von alte bin -> start bis png in datei kopieren, dann den neuen vec injecten, dann png end bis bin end adden
+    // vector.insert??
+    long PNG_START_GAME = findPNGstart(gameBinaryByteVec);
+    long PNG_END_GAME = findPNGend(gameBinaryByteVec);
+    long GAME_VEC_LEN = gameBinaryByteVec->size();
+    long GAME_SPRITE_LEN = PNG_END_GAME - PNG_START_GAME;
+
+    long PNG_START_PATCH = findPNGstart(spriteSheetByteVec);
+    long PNG_END_PATCH = findPNGend(spriteSheetByteVec);
+    long PATCH_VEC_LEN = spriteSheetByteVec->size();
+    long PATCH_SPRITE_LEN = PNG_END_PATCH - PNG_START_PATCH;
+
+    long GAME_TO_PATCH_DIFF = GAME_SPRITE_LEN - PATCH_SPRITE_LEN;
+
+    //gameBinaryByteVec->erase();
+    gameBinaryByteVec->insert(gameBinaryByteVec->begin() + PNG_END_GAME, spriteSheetByteVec->begin() + PNG_START_PATCH, spriteSheetByteVec->begin() + PNG_END_PATCH);
+
+    // Erase old PNG sector
+    gameBinaryByteVec->erase(gameBinaryByteVec->begin() + PNG_START_GAME, gameBinaryByteVec->begin() + PNG_END_GAME);
+ 
+    writePatchedBinary(gameBinaryByteVec);
+}
 
 int main(int argc, char* argv[])
 {
-    
-    errno = 0;
-    FILE* fileptr = NULL;
-    unsigned char* buffer;
-    long filelen;
+    long tfilelen = 0;
+    FILE* tfileptr = NULL;
+    // Test
+    cout << "Started" << endl;
+    std::string pathSheetPNG = getCurrentDir() + "\\" + "patch.png"; // The full path to the to be patched png file
+    std::string pathGameBin = getCurrentDir() + "\\" + "data.win";
+
+    cout << "Loading hex vecs" << endl;
+    auto pngVec = spriteSheetToBytevec(pathSheetPNG);
+    auto binVec = gameBinaryToBytevec(pathGameBin, &tfilelen, tfileptr);
+
+    cout << "Injecting spritesheet" << endl;
+    injectSpritesheet(binVec, pngVec);
+
+    cout << "Write patched bin" << endl;
+    writePatchedBinary(binVec);
+
+    cout << "Press any key to close." << endl;
+    while (!_kbhit());
+
+    return 0;
+    // Runtime variable definitions   
+    errno = 0;              // error status
+    FILE* fileptr = NULL;   // Fileptr to the Game binary file
+    unsigned char* buffer;  // Buffer to hold the game binary read bytes
+    long filelen;           // The length of the game binary file in BYTES
+    string path;            // The filepath of the game binary
 
 
-    string path;
     if (argc == 2)
     {
         cout << "Opened by drag-and-drop!" << endl;
