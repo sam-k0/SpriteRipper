@@ -195,6 +195,7 @@ void writePatchedBinary(vector<unsigned char>* vect)
     long filelen = vect->size();
     FILE* fptr = NULL;
 
+    cout << "Filelen: " << vect->size() << endl;
     printbuf = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
 
     // Converting the vec back to array lols
@@ -227,11 +228,29 @@ void injectSpritesheet(std::vector<unsigned char>* gameBinaryByteVec, std::vecto
 
     long GAME_TO_PATCH_DIFF = GAME_SPRITE_LEN - PATCH_SPRITE_LEN;
 
-    //gameBinaryByteVec->erase();
-    gameBinaryByteVec->insert(gameBinaryByteVec->begin() + PNG_END_GAME, spriteSheetByteVec->begin() + PNG_START_PATCH, spriteSheetByteVec->begin() + PNG_END_PATCH);
+    
+    // padding TODO: Fix padding automatically. try injecting pre-compiled gamemaker sprites
+    int paddingBytes = 0;
+    for (int i = 0; i < paddingBytes; i++)
+    {
+        spriteSheetByteVec->push_back(0x00);
+    }
 
+    vector<unsigned char> AudioSection(gameBinaryByteVec->begin() + PNG_END_GAME, gameBinaryByteVec->end());
+    
     // Erase old PNG sector
     gameBinaryByteVec->erase(gameBinaryByteVec->begin() + PNG_START_GAME, gameBinaryByteVec->begin() + PNG_END_GAME);
+    
+    // Write the new png sector after the original one
+    gameBinaryByteVec->insert(gameBinaryByteVec->begin() + PNG_START_GAME, spriteSheetByteVec->begin() + PNG_START_PATCH, spriteSheetByteVec->begin() + PNG_END_PATCH+paddingBytes);
+
+    cout << "pre audio len: " << gameBinaryByteVec->size() << endl;
+
+
+    //gameBinaryByteVec->insert(gameBinaryByteVec->end(), AudioSection.begin(), AudioSection.end());
+    
+    cout << "post : " << gameBinaryByteVec->size() << endl;
+//    gameBinaryByteVec->insert(gameBinaryByteVec->end(), AudioSection.begin(), AudioSection.end());
  
     writePatchedBinary(gameBinaryByteVec);
 }
@@ -242,12 +261,15 @@ int main(int argc, char* argv[])
     FILE* tfileptr = NULL;
     // Test
     cout << "Started" << endl;
-    std::string pathSheetPNG = getCurrentDir() + "\\" + "patch.png"; // The full path to the to be patched png file
-    std::string pathGameBin = getCurrentDir() + "\\" + "data.win";
+    std::string pathSheetPNG = getCurrentDir() + "\\"+ "AssetPatcherGMX\\" + "patch.png"; // The full path to the to be patched png file
+    std::string pathGameBin = getCurrentDir() + "\\" + "AssetPatcherGMX\\" + "data_original2.win";
 
     cout << "Loading hex vecs" << endl;
     auto pngVec = spriteSheetToBytevec(pathSheetPNG);
     auto binVec = gameBinaryToBytevec(pathGameBin, &tfilelen, tfileptr);
+
+
+    
 
     cout << "Injecting spritesheet" << endl;
     injectSpritesheet(binVec, pngVec);
