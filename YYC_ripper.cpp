@@ -1,15 +1,19 @@
 // YYC_ripper.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-#include "yyg.h"
 #include <iostream>
-#include <direct.h>
 #include <fstream>
 #include <vector>
 #include <algorithm>
 #include <array>
 #include <string>
 #include <stdio.h>
-#include <conio.h>
+
+#define LINUX 1
+#if LINUX == 1
+#include <unistd.h>
+#include <limits.h>
+#include <stdlib.h>
+#endif
+
 
 
 using namespace std;
@@ -19,11 +23,26 @@ std::vector<unsigned char> beginSq = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a,
 std::vector<unsigned char> endSq = { 0x49, 0x45, 0x4e ,0x44, 0xae, 0x42, 0x60, 0x82 };
 
 
+void uni_fopen(FILE** fileptr, std::string path, std::string mode)
+{
+    #if LINUX == 0
+    fopen_s(fileptr, path.c_str(), mode.c_str());
+    #else
+    *fileptr = fopen(path.c_str(), mode.c_str());
+    #endif
+}
+
+
 std::string getCurrentDir() // Returns EXE directory
 {
     char cCurrentPath[FILENAME_MAX]; // get working directory into buffer
+    #if LINUX == 0
     if (!_getcwd(cCurrentPath, sizeof(cCurrentPath)))
         exit(-1);
+    #else
+    if (getcwd(cCurrentPath, sizeof(cCurrentPath)) == NULL)
+        exit(-1);
+    #endif
     cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; // not really required
 
     char* s = cCurrentPath; // save path from buffer into currentpath chararr
@@ -66,14 +85,17 @@ void exitOnFileError()
 vector<unsigned char>* gameBinaryToBytevec(std::string path, long* filelen, FILE* fileptr)
 {
     // Local scope variable defs
-    //FILE* fileptr;
-    //long filelen = 0;
     unsigned char* buffer;
     // Passed-out variable defs
     std::vector<unsigned char>* fvec;
 
     // Reading file
+    #if LINUX == 0
     fopen_s(&fileptr, path.c_str(), "rb");
+    #else
+    fileptr = fopen(path.c_str(), "rb");
+    #endif
+
 
     exitOnFileError();
 
@@ -88,9 +110,7 @@ vector<unsigned char>* gameBinaryToBytevec(std::string path, long* filelen, FILE
 
     // translate this to vector
     fvec = convertUCArrayToVec(*filelen, buffer);
-
-    // Free the buffer??
-    // will it break the copied values?
+    
     free(buffer);
 
     return fvec;
@@ -106,8 +126,13 @@ vector<unsigned char>* spriteSheetToBytevec(std::string path)
     // Passed-out variable defs
     std::vector<unsigned char>* fvec;
 
+
     // Reading file
+    #if LINUX == 0
     fopen_s(&fileptr, path.c_str(), "rb");
+    #else
+    fileptr = fopen(path.c_str(), "rb");
+    #endif
 
     exitOnFileError();
 
@@ -189,98 +214,8 @@ long findPNGend(vector<unsigned char>* vect)
     return pngend;
 }
 
-void writePatchedBinary(vector<unsigned char>* vect)
-{
-    unsigned char* printbuf;        // The buffer to be printed then
-    long filelen = vect->size();
-    FILE* fptr = NULL;
-
-    cout << "Filelen: " << vect->size() << endl;
-    printbuf = (unsigned char*)malloc(filelen * sizeof(unsigned char)); // Enough memory for the file
-
-    // Converting the vec back to array lols
-
-    printbuf = convertToUCArray(vect, vect->size());
-    // save to file (printarr)
-
-    string savefilename = "patch.win";
-    // Printing file..
-    fopen_s(&fptr, savefilename.c_str(), "wb");
-    fwrite(printbuf, sizeof(unsigned char), filelen, fptr);
-    fclose(fptr); // Close the file
-    free(printbuf);
-}
-
-// This will return the gamebin vec with the spritesheet vec injected at the png section
-void injectSpritesheet(std::vector<unsigned char>* gameBinaryByteVec, std::vector<unsigned char>* spriteSheetByteVec)
-{
-    // TODO: Start von alte bin -> start bis png in datei kopieren, dann den neuen vec injecten, dann png end bis bin end adden
-    // vector.insert??
-    long PNG_START_GAME = findPNGstart(gameBinaryByteVec);
-    long PNG_END_GAME = findPNGend(gameBinaryByteVec);
-    long GAME_VEC_LEN = gameBinaryByteVec->size();
-    long GAME_SPRITE_LEN = PNG_END_GAME - PNG_START_GAME;
-
-    long PNG_START_PATCH = findPNGstart(spriteSheetByteVec);
-    long PNG_END_PATCH = findPNGend(spriteSheetByteVec);
-    long PATCH_VEC_LEN = spriteSheetByteVec->size();
-    long PATCH_SPRITE_LEN = PNG_END_PATCH - PNG_START_PATCH;
-
-    long GAME_TO_PATCH_DIFF = GAME_SPRITE_LEN - PATCH_SPRITE_LEN;
-
-    
-    // padding TODO: Fix padding automatically. try injecting pre-compiled gamemaker sprites
-    int paddingBytes = 0;
-    for (int i = 0; i < paddingBytes; i++)
-    {
-        spriteSheetByteVec->push_back(0x00);
-    }
-
-    vector<unsigned char> AudioSection(gameBinaryByteVec->begin() + PNG_END_GAME, gameBinaryByteVec->end());
-    
-    // Erase old PNG sector
-    gameBinaryByteVec->erase(gameBinaryByteVec->begin() + PNG_START_GAME, gameBinaryByteVec->begin() + PNG_END_GAME);
-    
-    // Write the new png sector after the original one
-    gameBinaryByteVec->insert(gameBinaryByteVec->begin() + PNG_START_GAME, spriteSheetByteVec->begin() + PNG_START_PATCH, spriteSheetByteVec->begin() + PNG_END_PATCH+paddingBytes);
-
-    cout << "pre audio len: " << gameBinaryByteVec->size() << endl;
-
-
-    //gameBinaryByteVec->insert(gameBinaryByteVec->end(), AudioSection.begin(), AudioSection.end());
-    
-    cout << "post : " << gameBinaryByteVec->size() << endl;
-//    gameBinaryByteVec->insert(gameBinaryByteVec->end(), AudioSection.begin(), AudioSection.end());
- 
-    writePatchedBinary(gameBinaryByteVec);
-}
-
 int main(int argc, char* argv[])
 {
-    long tfilelen = 0;
-    FILE* tfileptr = NULL;
-    // Test
-    cout << "Started" << endl;
-    std::string pathSheetPNG = getCurrentDir() + "\\"+ "AssetPatcherGMX\\" + "patch.png"; // The full path to the to be patched png file
-    std::string pathGameBin = getCurrentDir() + "\\" + "AssetPatcherGMX\\" + "data_original2.win";
-
-    cout << "Loading hex vecs" << endl;
-    auto pngVec = spriteSheetToBytevec(pathSheetPNG);
-    auto binVec = gameBinaryToBytevec(pathGameBin, &tfilelen, tfileptr);
-
-
-    
-
-    cout << "Injecting spritesheet" << endl;
-    injectSpritesheet(binVec, pngVec);
-
-    cout << "Write patched bin" << endl;
-    writePatchedBinary(binVec);
-
-    cout << "Press any key to close." << endl;
-    while (!_kbhit());
-
-    return 0;
     // Runtime variable definitions   
     errno = 0;              // error status
     FILE* fileptr = NULL;   // Fileptr to the Game binary file
