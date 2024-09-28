@@ -1,11 +1,33 @@
-# YYC_ripper
+# SpriteRipper
 
-Extract sprites from games made with GMS.
-Should work for .exe files aswell as .win files.
+A tool to extract spritesheets from GameMaker Studio 1.4 binaries.
 
-Of course you only use this on your own games.
+This works on `.win` and `.exe` files (aka bytecode and compiled games).
+Untested on GameMaker Studio 2+ games.
 
-If windows says its malware, download an older release. Idk what I did wrong that it now triggers defender.
-## How to use
-1. Drag and drop the .win file onto the yyc_ripper.exe
-2. PNG files will now be stored in the directory of the .win file
+## Usage (Windows)
+
+1. Drag-and-drop the `.win` or `.exe` file onto the program.
+ 2. The spritesheets will be extracted to the same directory as the input file.
+
+> [!NOTE]  
+> Alternatively, you can run the program from the command line and pass the path to the file as an argument.
+
+
+## Usage (Linux)
+Run the program from the command line and pass the path to the file as an argument.
+
+
+## Building
+
+### Windows
+Through Visual Studio:
+- Open the vcxproj file in Visual Studio and click build. Should be fine
+
+### Linux
+1. `g++ main.cpp -o SpriteRipper`
+2. `chmod +x SpriteRipper` <-- add the execute permission, may be unnecessary
+3. `./SpriteRipper <path to .win or .exe file>`
+
+
+

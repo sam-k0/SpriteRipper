@@ -1,5 +1,5 @@
 /*
-    AssetRipper
+    SpriteRipper
     A simple tool to extract PNG images from GameMaker Studio 1.4 game binaries.
     Author: samk0
 */
