@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <array>
 #include <fstream>
+#include <conio.h>
+#include <direct.h>
 #endif
 
 // The sections to test against
@@ -245,7 +247,7 @@ int main(int argc, char* argv[])
     delete fvec;
     printf("Finished! %d images extracted.\n", imgcnt);
     #if LINUX == 0
-    while (!kbhit());
+    while (!_kbhit());
     #endif
 
     return 0;
