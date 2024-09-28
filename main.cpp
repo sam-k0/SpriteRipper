@@ -8,8 +8,12 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#ifdef WIN32
+#define LINUX 0 // Switch this for Linux or Windows
+#else
+#define LINUX 1
+#endif
 
-#define LINUX 1 // Switch this for Linux or Windows
 #if LINUX == 1 // Linux includes
 #include <unistd.h>
 #include <limits.h>
