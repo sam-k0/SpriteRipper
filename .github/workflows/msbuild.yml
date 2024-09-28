@@ -7,7 +7,6 @@ on:
     branches: [ "master" ]
 
 env:
-env:
   # Specify the project file (.vcxproj) instead of a solution file (.sln)
   PROJECT_FILE_PATH: YYC_ripper.vcxproj  # Update this with your actual vcxproj file
   BUILD_CONFIGURATION: Release
