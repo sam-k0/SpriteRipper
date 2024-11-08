@@ -1,9 +1,8 @@
 # SpriteRipper
 
-A tool to extract spritesheets from GameMaker Studio 1.4 binaries.
+A tool to extract spritesheets from GameMaker Studio 1.4 & 2 binaries.
 
 This works on `.win` and `.exe` files (aka bytecode and compiled games).
-Untested on GameMaker Studio 2+ games.
 
 Download the latest release [here](https://github.com/sam-k0/SpriteRipper/releases/latest).
 
